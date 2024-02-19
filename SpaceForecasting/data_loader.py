@@ -40,3 +40,7 @@ def fetch_solar_wind_data(url):
 if __name__ == "__main__":
     json_url = 'https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json'
     df_solar_wind = fetch_solar_wind_data(json_url)
+
+    output_file_path = 'preprocessed_solar_wind_data.csv'
+    df_solar_wind.to_csv(output_file_path, index=False)
+    print(f"Preprocessed data saved to {output_file_path}")
