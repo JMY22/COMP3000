@@ -48,10 +48,13 @@ def normalize_and_sequence_data(df, n_steps):
     """Normalize the dataframe features and create sequences for LSTM model input."""
     features = ['bx_gsm', 'by_gsm', 'bz_gsm', 'bt']
     scaler = MinMaxScaler(feature_range=(0, 1))
-    df[features] = scaler.fit_transform(df[features])
+
+    # Work on a copy to avoid SettingWithCopyWarning
+    df_copy = df.copy()
+    df_copy[features] = scaler.fit_transform(df_copy[features])
 
     X, y = [], []
-    for i in range(n_steps, len(df)):
-        X.append(df[features].iloc[i-n_steps:i].to_numpy())
-        y.append(df[features].iloc[i].to_numpy())
+    for i in range(n_steps, len(df_copy)):
+        X.append(df_copy[features].iloc[i - n_steps:i].to_numpy())
+        y.append(df_copy[features].iloc[i].to_numpy())
     return np.array(X), np.array(y), scaler
