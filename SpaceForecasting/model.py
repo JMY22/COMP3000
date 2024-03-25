@@ -32,7 +32,7 @@ def train_and_save_model(X_train, y_train, X_val, y_val, model_path, n_features,
     return model, history
 
 
-def load_and_update_model(model_path, X, y, epochs=20, batch_size=32):
+def load_and_update_model(model_path, X, y, epochs=100, batch_size=96):
     """
     Loads an existing model and updates it with new data.
     """

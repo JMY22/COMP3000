@@ -25,7 +25,7 @@ def main():
     print(f"Combined data has {combined_data.shape[0]} rows and {combined_data.shape[1]} columns.")
 
     print("Selecting a recent subset of the data for training...")
-    recent_data_subset = combined_data.tail(1000)
+    recent_data_subset = combined_data.tail(3000)
 
     print("Preparing data for the LSTM model with the recent data subset...")
     X, y, scaler = normalize_and_sequence_data(recent_data_subset, N_STEPS)
