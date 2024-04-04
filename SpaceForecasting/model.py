@@ -59,3 +59,30 @@ def forecast(model, scaler, last_known_sequence, n_features, steps=1):
     # Assuming scaler is fitted on the dataset with the same number of features
     forecasts = scaler.inverse_transform(forecasts)
     return forecasts
+
+
+def forecast_average_bt(model, scaler, initial_sequence, total_steps, steps_per_day):
+    daily_averages = []
+    current_sequence = np.copy(initial_sequence.reshape((1, -1, initial_sequence.shape[-1])))
+
+    for day in range(total_steps // steps_per_day):
+        daily_forecast = []
+
+        for _ in range(steps_per_day):
+            # Predict the next step based on the current sequence
+            forecasted_step_scaled = model.predict(current_sequence)[0]
+            # Update the current sequence with the scaled prediction for the next prediction
+            current_sequence = np.roll(current_sequence, -1, axis=1)
+            current_sequence[0, -1, :] = forecasted_step_scaled
+
+            # Inverse transform the scaled prediction to its original scale
+            forecasted_step = scaler.inverse_transform(forecasted_step_scaled.reshape(1, -1))[0]
+
+            # Append the 'bt' value (assuming it is the fourth feature) to daily_forecast
+            daily_forecast.append(forecasted_step[3])
+
+        # Calculate the daily average 'bt' value
+        daily_average_bt = np.mean(daily_forecast)
+        daily_averages.append(daily_average_bt)
+
+    return np.array(daily_averages)
