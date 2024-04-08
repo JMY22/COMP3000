@@ -47,7 +47,7 @@ def main():
 
     print("Forecasting average 'bt' for the next 7 days...")
     total_steps = 7 * 1440  # 7 days * 1440 minutes per day
-    daily_averages_bt = forecast_average_bt(model, scaler, X_test[-1], total_steps, 1440)
+    daily_averages_bt = forecast_average_bt(model, scaler, X_test[-1], total_steps, 1440, N_STEPS, N_FEATURES)
 
     last_known_date = pd.to_datetime(combined_data.index[-1]).date()
     for i, avg_bt in enumerate(daily_averages_bt):
