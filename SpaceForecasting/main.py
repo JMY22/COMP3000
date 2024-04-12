@@ -8,7 +8,7 @@ import os
 MODEL_PATH = 'C:/Users/Joe/Desktop/Kaggle Data/solar_wind_model.keras'
 JSON_URL = 'https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json'
 CSV_FILE = 'C:/Users/Joe/Desktop/Kaggle Data/solar_wind.csv'
-N_STEPS_SHORT_TERM = 60
+N_STEPS_SHORT_TERM = 360
 N_STEPS_AVERAGE = 1440  # Different n_steps for the daily average calculation
 N_FEATURES = 4  # bx_gsm, by_gsm, bz_gsm, bt
 
@@ -35,11 +35,11 @@ def main():
     # Model training/update
     if os.path.exists(MODEL_PATH):
         print("Loading and updating existing model...")
-        model = load_and_update_model(MODEL_PATH, X_train, y_train, X_val=X_test, y_val=y_test, epochs=5, batch_size=32)
+        model = load_and_update_model(MODEL_PATH, X_train, y_train, X_val=X_test, y_val=y_test, epochs=5, batch_size=128)
     else:
         print("Building and training a new LSTM model...")
         model = train_and_save_model(X_train, y_train, X_val=X_test, y_val=y_test, model_path=MODEL_PATH,
-                                     n_features=N_FEATURES, n_steps=N_STEPS_SHORT_TERM, epochs=5, batch_size=32)
+                                     n_features=N_FEATURES, n_steps=N_STEPS_SHORT_TERM, epochs=50, batch_size=128)
 
     # Short-term forecasting
     print("Model training/update complete. Forecasting the next 200 steps...")

@@ -7,12 +7,12 @@ from tensorflow.keras.layers import LSTM, Dense, Dropout, BatchNormalization
 import numpy as np
 
 
-def build_model(n_features, n_steps, output_units=50, dropout_rate=0.5):
+def build_model(n_features, n_steps, output_units=25, dropout_rate=0.5):
     model = Sequential([
-        Bidirectional(LSTM(output_units, return_sequences=True, activation='relu'), input_shape=(n_steps, n_features)),
+        Bidirectional(LSTM(output_units, return_sequences=True, activation='tanh'), input_shape=(n_steps, n_features)),
         BatchNormalization(),
         Dropout(dropout_rate),
-        LSTM(output_units // 2, activation='relu'),
+        LSTM(output_units // 2, activation='tanh'),
         Dropout(dropout_rate),
         Dense(n_features)
     ])
@@ -20,10 +20,10 @@ def build_model(n_features, n_steps, output_units=50, dropout_rate=0.5):
     return model
 
 
-def train_and_save_model(X_train, y_train, X_val, y_val, model_path, n_features, n_steps, epochs=50, batch_size=32):
+def train_and_save_model(X_train, y_train, X_val, y_val, model_path, n_features, n_steps, epochs=50, batch_size=128):
     model = build_model(n_features, n_steps)
-    early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.0001)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.0001)
     model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_data=(X_val, y_val),
               callbacks=[early_stopping, reduce_lr])
     model.save(model_path)
@@ -33,15 +33,15 @@ def train_and_save_model(X_train, y_train, X_val, y_val, model_path, n_features,
 def load_and_update_model(model_path, X_train, y_train, X_val, y_val, epochs=5, batch_size=32):
     model = load_model(model_path)
     # Assuming validation or rebuilding based on n_features and n_steps is not needed here
-    early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.0001)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=2, min_lr=0.0001)
     model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_data=(X_val, y_val),
               callbacks=[early_stopping, reduce_lr])
     model.save(model_path)
     return model
 
 
-def forecast(model, scaler, initial_sequence, steps=100, noise_level=0.1):
+def forecast(model, scaler, initial_sequence, steps=100, noise_level=0.01):
     n_features = 4  # Defined as per your constants
     initial_sequence = initial_sequence.reshape((1, -1, n_features))  # Ensure correct shape
 
