@@ -1,79 +1,78 @@
-from keras.src.callbacks import EarlyStopping
+from keras.src.callbacks import EarlyStopping, ReduceLROnPlateau
+from keras.src.layers import Bidirectional
+from keras.src.optimizers import Adam
 from keras.src.saving import load_model
 from tensorflow.keras import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout
+from tensorflow.keras.layers import LSTM, Dense, Dropout, BatchNormalization
 import numpy as np
 
 
-def build_model(n_features, n_steps=60, output_units=50, dropout_rate=0.2):
-    """
-    Builds an LSTM model with dropout for regularization.
-    """
+def build_model(n_features, n_steps, output_units=50, dropout_rate=0.5):
     model = Sequential([
-        LSTM(output_units, activation='relu', input_shape=(n_steps, n_features), return_sequences=True),
+        Bidirectional(LSTM(output_units, return_sequences=True, activation='relu'), input_shape=(n_steps, n_features)),
+        BatchNormalization(),
         Dropout(dropout_rate),
-        LSTM(output_units, activation='relu'),
+        LSTM(output_units // 2, activation='relu'),
         Dropout(dropout_rate),
         Dense(n_features)
     ])
-    model.compile(optimizer='adam', loss='mean_squared_error')
+    model.compile(optimizer=Adam(learning_rate=0.0005), loss='mean_squared_error')
     return model
 
 
-def train_and_save_model(X_train, y_train, X_val, y_val, model_path, n_features, n_steps=60, epochs=100, batch_size=32):
-    """
-    Trains the LSTM model and saves it to the specified path.
-    """
+def train_and_save_model(X_train, y_train, X_val, y_val, model_path, n_features, n_steps, epochs=50, batch_size=32):
     model = build_model(n_features, n_steps)
-    early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
-    history = model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_data=(X_val, y_val),
-                        callbacks=[early_stopping])
-    model.save(model_path)
-    return model, history
-
-
-def load_and_update_model(model_path, X, y, epochs=100, batch_size=96):
-    """
-    Loads an existing model and updates it with new data.
-    """
-    model = load_model(model_path)
-    model.fit(X, y, epochs=epochs, batch_size=batch_size)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.0001)
+    model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_data=(X_val, y_val),
+              callbacks=[early_stopping, reduce_lr])
     model.save(model_path)
     return model
 
 
-def forecast(model, scaler, last_known_sequence, n_features, steps=1):
-    """
-    Forecasts future steps based on the last known sequence.
-    """
-    forecasts = []
-    current_sequence = last_known_sequence.reshape((1, last_known_sequence.shape[0], n_features))
+def load_and_update_model(model_path, X_train, y_train, X_val, y_val, epochs=5, batch_size=32):
+    model = load_model(model_path)
+    # Assuming validation or rebuilding based on n_features and n_steps is not needed here
+    early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.0001)
+    model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_data=(X_val, y_val),
+              callbacks=[early_stopping, reduce_lr])
+    model.save(model_path)
+    return model
 
-    for _ in range(steps):
-        forecasted_step = model.predict(current_sequence)[0]
-        forecasts.append(forecasted_step)
+
+def forecast(model, scaler, initial_sequence, steps=100, noise_level=0.1):
+    n_features = 4  # Defined as per your constants
+    initial_sequence = initial_sequence.reshape((1, -1, n_features))  # Ensure correct shape
+
+    forecasts = np.zeros((steps, n_features))
+    current_sequence = initial_sequence
+
+    for i in range(steps):
+        noisy_sequence = current_sequence + np.random.normal(0, noise_level, current_sequence.shape)
+        forecasted_step = model.predict(noisy_sequence)[0]
+        forecasts[i] = forecasted_step
         current_sequence = np.roll(current_sequence, -1, axis=1)
         current_sequence[0, -1, :] = forecasted_step
 
-    forecasts = np.array(forecasts)
-    # Assuming scaler is fitted on the dataset with the same number of features
     forecasts = scaler.inverse_transform(forecasts)
     return forecasts
 
 
-# Adjust the function definition to accept N_STEPS and N_FEATURES as parameters
-def forecast_average_bt(model, scaler, initial_sequence, total_steps, steps_per_day, N_STEPS, N_FEATURES):
+def forecast_average_bt(model, scaler, initial_sequence, total_steps, steps_per_day, n_steps, noise_level=0.15):
+    n_features = 4  # Defined as per your constants
+    initial_sequence = initial_sequence.reshape((1, n_steps, n_features))  # Ensure correct shape for n_steps
+
     daily_averages = []
-    current_sequence = initial_sequence.reshape((1, N_STEPS, N_FEATURES))
+    current_sequence = initial_sequence
 
     for day in range(total_steps // steps_per_day):
         daily_forecast = []
-
         for _ in range(steps_per_day):
-            forecasted_step_scaled = model.predict(current_sequence)[0]
+            noisy_sequence = current_sequence + np.random.normal(0, noise_level, current_sequence.shape)
+            forecasted_step_scaled = model.predict(noisy_sequence)[0]
             current_sequence = np.roll(current_sequence, -1, axis=1)
             current_sequence[0, -1, :] = forecasted_step_scaled
-
             forecasted_step = scaler.inverse_transform(forecasted_step_scaled.reshape(1, -1))[0]
             daily_forecast.append(forecasted_step[3])
 
