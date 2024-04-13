@@ -16,3 +16,21 @@ def plot_forecasts(actual_data, forecasts, last_known_time):
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
+
+
+def plot_averages(past_data, forecasted_data, start_date):
+    plt.figure(figsize=(12, 6))
+    dates_past = pd.date_range(end=start_date, periods=len(past_data), freq='D')
+    dates_future = pd.date_range(start=start_date + pd.Timedelta(days=1), periods=len(forecasted_data), freq='D')
+
+    plt.plot(dates_past, past_data, 'b-o', label='Actual Past 7 Days Average BT')
+    plt.plot(dates_future, forecasted_data, 'r-x', label='Predicted Next 7 Days Average BT')
+
+    plt.title('Comparison of Past and Predicted BT Averages')
+    plt.xlabel('Date')
+    plt.ylabel('Average BT')
+    plt.legend()
+    plt.grid(True)
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()

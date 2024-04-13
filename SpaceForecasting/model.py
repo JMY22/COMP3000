@@ -1,22 +1,26 @@
 from keras.src.callbacks import EarlyStopping, ReduceLROnPlateau
-from keras.src.layers import Bidirectional
+from keras.src.layers import Bidirectional, Conv1D
+from keras.src.metrics import MeanSquaredError
 from keras.src.optimizers import Adam
 from keras.src.saving import load_model
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout, BatchNormalization
 import numpy as np
+from tensorflow.keras.regularizers import l2
 
 
-def build_model(n_features, n_steps, output_units=25, dropout_rate=0.5):
+def build_model(n_features, n_steps, output_units=32, dropout_rate=0.3, regularization_rate=0.0005):
     model = Sequential([
-        Bidirectional(LSTM(output_units, return_sequences=True, activation='tanh'), input_shape=(n_steps, n_features)),
+        Conv1D(filters=64, kernel_size=3, activation='relu', input_shape=(n_steps, n_features)),
         BatchNormalization(),
         Dropout(dropout_rate),
-        LSTM(output_units // 2, activation='tanh'),
+        Bidirectional(LSTM(output_units, return_sequences=True, activation='tanh', kernel_regularizer=l2(regularization_rate))),
         Dropout(dropout_rate),
-        Dense(n_features)
+        LSTM(output_units, activation='tanh', kernel_regularizer=l2(regularization_rate)),
+        Dropout(dropout_rate),
+        Dense(n_features, activation='relu', kernel_regularizer=l2(regularization_rate))
     ])
-    model.compile(optimizer=Adam(learning_rate=0.0005), loss='mean_squared_error')
+    model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_squared_error')
     return model
 
 
@@ -30,13 +34,19 @@ def train_and_save_model(X_train, y_train, X_val, y_val, model_path, n_features,
     return model
 
 
-def load_and_update_model(model_path, X_train, y_train, X_val, y_val, epochs=5, batch_size=32):
-    model = load_model(model_path)
-    # Assuming validation or rebuilding based on n_features and n_steps is not needed here
-    early_stopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=2, min_lr=0.0001)
-    model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_data=(X_val, y_val),
-              callbacks=[early_stopping, reduce_lr])
+def load_and_update_model(model_path, X_train, y_train, X_val, y_val, epochs=5, batch_size=128):
+    try:
+        model = load_model(model_path, custom_objects={"Adam": Adam, "MeanSquaredError": MeanSquaredError})
+        print("Model loaded successfully!")
+    except ValueError as e:
+        print(f"Error loading model. Rebuilding model. Error: {e}")
+        model = build_model(n_features=X_train.shape[-1], n_steps=X_train.shape[1], output_units=32, dropout_rate=0.3)
+        model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_squared_error')
+        print("New model initialized due to load failure.")
+
+    model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=epochs, batch_size=batch_size,
+              callbacks=[EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True),
+                         ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=2, min_lr=0.00001)])
     model.save(model_path)
     return model
 

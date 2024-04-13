@@ -1,7 +1,7 @@
 from data_loader import fetch_solar_wind_data, load_new_data, normalize_and_sequence_data
 from model import train_and_save_model, load_and_update_model, forecast, forecast_average_bt
 import pandas as pd
-from visualisation import plot_forecasts
+from visualisation import plot_forecasts, plot_averages
 import os
 
 # Define constants and file paths
@@ -35,7 +35,8 @@ def main():
     # Model training/update
     if os.path.exists(MODEL_PATH):
         print("Loading and updating existing model...")
-        model = load_and_update_model(MODEL_PATH, X_train, y_train, X_val=X_test, y_val=y_test, epochs=5, batch_size=128)
+        model = load_and_update_model(MODEL_PATH, X_train, y_train, X_val=X_test, y_val=y_test, epochs=5,
+                                      batch_size=128)
     else:
         print("Building and training a new LSTM model...")
         model = train_and_save_model(X_train, y_train, X_val=X_test, y_val=y_test, model_path=MODEL_PATH,
@@ -63,15 +64,16 @@ def main():
 
     # Daily average 'bt' forecasting
     print("Forecasting average 'bt' for the next 7 days...")
-    recent_data_subset_daily_avg = combined_data.tail(N_STEPS_AVERAGE * 21)  # Use N_STEPS_AVERAGE here
+    recent_data_subset_daily_avg = combined_data.tail(N_STEPS_AVERAGE * 21)
     X_daily_avg, y_daily_avg, scaler_daily_avg = normalize_and_sequence_data(recent_data_subset_daily_avg, N_STEPS_AVERAGE)
     initial_sequence_daily_avg = X_daily_avg[-1].flatten()
     daily_averages_bt = forecast_average_bt(model, scaler_daily_avg, initial_sequence_daily_avg, 7 * N_STEPS_AVERAGE, 1440, N_STEPS_AVERAGE)
+    avg_bt_output = [f"Average 'bt' on {pd.to_datetime(combined_data.index[-1]).date() + pd.Timedelta(days=i + 1)}: {avg_bt:.2f}" for i, avg_bt in enumerate(daily_averages_bt)]
+    print("\n".join(avg_bt_output))
 
-    last_known_date = pd.to_datetime(combined_data.index[-1]).date()
-    for i, avg_bt in enumerate(daily_averages_bt):
-        forecast_date = last_known_date + pd.Timedelta(days=i + 1)
-        print(f"Average 'bt' on {forecast_date}: {avg_bt:.2f}")
+    # Usage in your main function after forecasting average 'bt'
+    past_avg_bt = actual_bt_data.rolling(window=1440).mean().dropna().last('7D').values
+    plot_averages(past_avg_bt, daily_averages_bt, pd.to_datetime(combined_data.index[-1]).date())
 
 
 if __name__ == "__main__":
