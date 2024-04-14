@@ -22,10 +22,8 @@ def main():
     combined_data = pd.concat([df_historic_data, df_recent_data], axis=0).sort_index()
 
     # Preparing data for short-term forecasting
-    recent_data_subset_short_term = combined_data.tail(
-        N_STEPS_SHORT_TERM * 100)  # Using last 100 data points for training
-    X_short_term, y_short_term, scaler_short_term = normalize_and_sequence_data(recent_data_subset_short_term,
-                                                                                N_STEPS_SHORT_TERM)
+    recent_data_subset_short_term = combined_data.tail(N_STEPS_SHORT_TERM * 100)
+    X_short_term, y_short_term, scaler_short_term = normalize_and_sequence_data(recent_data_subset_short_term, N_STEPS_SHORT_TERM)
 
     # Split the data, keeping the latest for testing to simulate future unseen data
     train_size = int(len(X_short_term) * 0.8)
@@ -35,12 +33,10 @@ def main():
     # Model training/update
     if os.path.exists(MODEL_PATH):
         print("Loading and updating existing model...")
-        model = load_and_update_model(MODEL_PATH, X_train, y_train, X_val=X_test, y_val=y_test, epochs=5,
-                                      batch_size=128)
+        model = load_and_update_model(MODEL_PATH, X_train, y_train, X_val=X_test, y_val=y_test, epochs=5, batch_size=128)
     else:
         print("Building and training a new LSTM model...")
-        model = train_and_save_model(X_train, y_train, X_val=X_test, y_val=y_test, model_path=MODEL_PATH,
-                                     n_features=N_FEATURES, n_steps=N_STEPS_SHORT_TERM, epochs=50, batch_size=128)
+        model = train_and_save_model(X_train, y_train, X_val=X_test, y_val=y_test, model_path=MODEL_PATH, n_features=N_FEATURES, n_steps=N_STEPS_SHORT_TERM, epochs=50, batch_size=128)
 
     # Short-term forecasting
     print("Model training/update complete. Forecasting the next 200 steps...")
@@ -51,15 +47,14 @@ def main():
     for i in range(100):
         forecast_time = last_known_time + pd.Timedelta(minutes=i + 1)
         forecast_data = forecasted_values[i]
-        forecast_output.append(f"{forecast_time}, {forecast_data[0]:.2f}, {forecast_data[1]:.2f}, "
-                               f"{forecast_data[2]:.2f}, {forecast_data[3]:.2f}")
+        forecast_output.append(f"{forecast_time}, {forecast_data[0]:.2f}, {forecast_data[1]:.2f}, {forecast_data[2]:.2f}, {forecast_data[3]:.2f}")
     print("Forecasted Data for the next 100 steps:")
     print("\n".join(forecast_output))
 
-    # Extract actual 'bt' data for the last 100 minutes for comparison
-    actual_bt_data = combined_data['bt'].tail(100)
+    # Extract actual 'bt' data for the last 800 minutes for comparison
+    actual_bt_data = combined_data['bt'].tail(800)
 
-    # Visualization
+    # Visualization of short-term forecasts
     plot_forecasts(actual_bt_data, forecasted_values, last_known_time)
 
     # Daily average 'bt' forecasting
@@ -71,9 +66,8 @@ def main():
     avg_bt_output = [f"Average 'bt' on {pd.to_datetime(combined_data.index[-1]).date() + pd.Timedelta(days=i + 1)}: {avg_bt:.2f}" for i, avg_bt in enumerate(daily_averages_bt)]
     print("\n".join(avg_bt_output))
 
-    # Usage in your main function after forecasting average 'bt'
-    past_avg_bt = actual_bt_data.rolling(window=1440).mean().dropna().last('7D').values
-    plot_averages(past_avg_bt, daily_averages_bt, pd.to_datetime(combined_data.index[-1]).date())
+    # Calculate past 7 days rolling averages for visualization
+    plot_averages(daily_averages_bt, pd.to_datetime(combined_data.index[-1]).date() + pd.Timedelta(days=1))
 
 
 if __name__ == "__main__":
