@@ -5,7 +5,7 @@ from visualisation import plot_forecasts, plot_averages
 import os
 
 # Define constants and file paths
-MODEL_PATH = 'C:/Users/Joe/Desktop  /solar_wind_model.keras'
+MODEL_PATH = 'C:/Users/Joe/Desktop/solar_wind_model.keras'
 JSON_URL = 'https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json'
 CSV_FILE = 'C:/Users/Joe/Desktop/Kaggle Data/solar_wind.csv'
 N_STEPS_SHORT_TERM = 720
