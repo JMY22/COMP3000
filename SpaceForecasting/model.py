@@ -1,6 +1,6 @@
 from keras.src.callbacks import EarlyStopping, ReduceLROnPlateau
 from keras.src.layers import Bidirectional, Conv1D
-from keras.src.metrics import MeanSquaredError
+from keras.src.losses import MeanAbsoluteError
 from keras.src.optimizers import Adam
 from keras.src.saving import load_model
 from tensorflow.keras import Sequential
@@ -9,7 +9,7 @@ import numpy as np
 from tensorflow.keras.regularizers import l2
 
 
-def build_model(n_features, n_steps, output_units=32, dropout_rate=0.3, regularization_rate=0.0005):
+def build_model(n_features, n_steps, output_units=128, dropout_rate=0.3, regularization_rate=0.0001):
     model = Sequential([
         Conv1D(filters=64, kernel_size=3, activation='relu', input_shape=(n_steps, n_features)),
         BatchNormalization(),
@@ -20,7 +20,7 @@ def build_model(n_features, n_steps, output_units=32, dropout_rate=0.3, regulari
         Dropout(dropout_rate),
         Dense(n_features, activation='relu', kernel_regularizer=l2(regularization_rate))
     ])
-    model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_squared_error')
+    model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_absolute_error')
     return model
 
 
@@ -35,13 +35,14 @@ def train_and_save_model(X_train, y_train, X_val, y_val, model_path, n_features,
 
 
 def load_and_update_model(model_path, X_train, y_train, X_val, y_val, epochs=5, batch_size=128):
+    custom_objects = {"Adam": Adam, "MeanAbsoluteError": MeanAbsoluteError, "LSTMCell": LSTM}
     try:
-        model = load_model(model_path, custom_objects={"Adam": Adam, "MeanSquaredError": MeanSquaredError})
+        model = load_model(model_path, custom_objects=custom_objects)
         print("Model loaded successfully!")
-    except ValueError as e:
-        print(f"Error loading model. Rebuilding model. Error: {e}")
-        model = build_model(n_features=X_train.shape[-1], n_steps=X_train.shape[1], output_units=32, dropout_rate=0.3)
-        model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_squared_error')
+    except Exception as e:
+        print(f"Error loading model: {str(e)}. Rebuilding model.")
+        model = build_model(n_features=X_train.shape[-1], n_steps=X_train.shape[1])
+        model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_absolute_error')
         print("New model initialized due to load failure.")
 
     model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=epochs, batch_size=batch_size,
@@ -51,7 +52,7 @@ def load_and_update_model(model_path, X_train, y_train, X_val, y_val, epochs=5, 
     return model
 
 
-def forecast(model, scaler, initial_sequence, steps=100, noise_level=0.01):
+def forecast(model, scaler, initial_sequence, steps=100, noise_level=0.07):
     n_features = 4  # Defined as per your constants
     initial_sequence = initial_sequence.reshape((1, -1, n_features))  # Ensure correct shape
 

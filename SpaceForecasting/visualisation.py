@@ -4,10 +4,18 @@ import pandas as pd
 
 def plot_forecasts(actual_data, forecasts, last_known_time):
     plt.figure(figsize=(15, 7))
-    forecast_dates = pd.date_range(start=last_known_time, periods=len(forecasts), freq='T')
+    forecast_dates = pd.date_range(start=last_known_time + pd.Timedelta(minutes=1), periods=len(forecasts), freq='T')
     forecast_series = pd.Series(data=[f[3] for f in forecasts], index=forecast_dates)
+
+    # Plot actual data
     plt.plot(actual_data.index, actual_data, label='Actual BT', marker='o', linestyle='-', color='blue', markersize=5)
+
+    # Plot forecasted data
     plt.plot(forecast_series.index, forecast_series, label='Forecasted BT', marker='x', linestyle='--', color='red', markersize=5)
+
+    # Add a vertical line to mark the transition from actual to forecasted data
+    plt.axvline(x=last_known_time, color='black', linestyle='--', label='Forecast Start')
+
     plt.title('BT Actual vs Forecasted')
     plt.xlabel('Time')
     plt.ylabel('Magnetic Field BT (nT)')

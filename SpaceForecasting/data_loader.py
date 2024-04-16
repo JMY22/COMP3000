@@ -30,8 +30,10 @@ def fetch_solar_wind_data(url):
 def load_new_data(csv_file, reference_timestamp):
     try:
         new_data = pd.read_csv(csv_file)
+        # Assuming 'timedelta' is meant to be subtracted to align data correctly
         new_data['timedelta'] = pd.to_timedelta(new_data['timedelta'])
-        new_data['time_tag'] = reference_timestamp + new_data['timedelta']
+        # Adjusting 'timedelta' to calculate timestamps that should end at the reference timestamp
+        new_data['time_tag'] = reference_timestamp - new_data['timedelta']
         new_data = new_data.sort_values(by='time_tag')
         new_data.set_index('time_tag', inplace=True)
         new_data = new_data[['bx_gsm', 'by_gsm', 'bz_gsm', 'bt']]
