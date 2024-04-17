@@ -1,10 +1,8 @@
-from keras.src.callbacks import EarlyStopping, ReduceLROnPlateau
-from keras.src.layers import Bidirectional, Conv1D
-from keras.src.losses import MeanAbsoluteError
-from keras.src.optimizers import Adam
-from keras.src.saving import load_model
-from tensorflow.keras import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout, BatchNormalization
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.layers import Bidirectional, Conv1D, LSTM, Dense, Dropout, BatchNormalization
+from tensorflow.keras.losses import MeanAbsoluteError
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.models import load_model, Sequential
 import numpy as np
 from tensorflow.keras.regularizers import l2
 
@@ -52,7 +50,7 @@ def load_and_update_model(model_path, X_train, y_train, X_val, y_val, epochs=5, 
     return model
 
 
-def forecast(model, scaler, initial_sequence, steps=100, noise_level=0.15):
+def forecast(model, scaler, initial_sequence, steps=100, noise_level=0.12):
     n_features = 4  # Defined as per your constants
     initial_sequence = initial_sequence.reshape((1, -1, n_features))  # Ensure correct shape
 
