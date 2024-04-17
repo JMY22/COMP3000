@@ -52,7 +52,7 @@ def load_and_update_model(model_path, X_train, y_train, X_val, y_val, epochs=5, 
     return model
 
 
-def forecast(model, scaler, initial_sequence, steps=100, noise_level=0.01):
+def forecast(model, scaler, initial_sequence, steps=100, noise_level=0.15):
     n_features = 4  # Defined as per your constants
     initial_sequence = initial_sequence.reshape((1, -1, n_features))  # Ensure correct shape
 
