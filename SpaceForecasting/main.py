@@ -54,7 +54,7 @@ def main():
     # Extract actual 'bt' data for the last 800 minutes for comparison
     actual_bt_data = combined_data['bt'].tail(800)
 
-    # Visualization of short-term forecasts
+    # Visualisation of short-term forecasts
     plot_forecasts(actual_bt_data, forecasted_values, last_known_time)
 
     # Daily average 'bt' forecasting
@@ -66,7 +66,7 @@ def main():
     avg_bt_output = [f"Average 'bt' on {pd.to_datetime(combined_data.index[-1]).date() + pd.Timedelta(days=i + 1)}: {avg_bt:.2f}" for i, avg_bt in enumerate(daily_averages_bt)]
     print("\n".join(avg_bt_output))
 
-    # Calculate past 7 days rolling averages for visualization
+    # Calculate past 7 days rolling averages for visualisation
     plot_averages(daily_averages_bt, pd.to_datetime(combined_data.index[-1]).date() + pd.Timedelta(days=1))
 
 

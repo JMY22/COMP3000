@@ -51,7 +51,7 @@ def load_and_update_model(model_path, X_train, y_train, X_val, y_val, epochs=5, 
 
 
 def forecast(model, scaler, initial_sequence, steps=100, noise_level=0.12):
-    n_features = 4  # Defined as per your constants
+    n_features = 4  # Defined as per my constants
     initial_sequence = initial_sequence.reshape((1, -1, n_features))  # Ensure correct shape
 
     forecasts = np.zeros((steps, n_features))
@@ -69,7 +69,7 @@ def forecast(model, scaler, initial_sequence, steps=100, noise_level=0.12):
 
 
 def forecast_average_bt(model, scaler, initial_sequence, total_steps, steps_per_day, n_steps, noise_level=0.15):
-    n_features = 4  # Defined as per your constants
+    n_features = 4  # Defined as per my constants
     initial_sequence = initial_sequence.reshape((1, n_steps, n_features))  # Ensure correct shape for n_steps
 
     daily_averages = []
