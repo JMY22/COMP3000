@@ -68,7 +68,7 @@ Please ensure that you have the necessary dependencies installed in your environ
 Datasets
 The datasets included in this repository are sourced from Kaggle and NOAA. Ensure to adhere to their respective licenses and usage agreements.
 
-Kaggle Dataset: Within dataset file in repository
+Kaggle Dataset: [https://www.kaggle.com/datasets/arashnic/soalr-wind?select=labels.csv]
 NOAA Dataset: [https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json]
 
 Acknowledgments
