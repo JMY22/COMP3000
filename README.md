@@ -69,7 +69,7 @@ Datasets
 The datasets included in this repository are sourced from Kaggle and NOAA. Ensure to adhere to their respective licenses and usage agreements.
 
 Kaggle Dataset: Within dataset file in repository
-NOAA Dataset: 
+NOAA Dataset: [https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json]
 
 Acknowledgments
 NOAA for providing the solar wind data.
