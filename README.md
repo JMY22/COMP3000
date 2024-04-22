@@ -68,8 +68,8 @@ Please ensure that you have the necessary dependencies installed in your environ
 Datasets
 The datasets included in this repository are sourced from Kaggle and NOAA. Ensure to adhere to their respective licenses and usage agreements.
 
-Kaggle Dataset: [link-to-kaggle-dataset]
-NOAA Dataset: [link-to-noaa-dataset]
+Kaggle Dataset: Within dataset file in repository
+NOAA Dataset: 
 
 Acknowledgments
 NOAA for providing the solar wind data.
