@@ -32,8 +32,8 @@ virtualenv (optional)
 Installation
 Clone the repository:
 
-git clone https://github.com/JMY22/SpaceForecasting.git
-cd SpaceForecasting
+git clone [https://github.com/JMY22/COMP3000.git]
+cd COMP3000
 
 (Optional) Create and activate a virtual environment:
 virtualenv venv
