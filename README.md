@@ -3,7 +3,7 @@ Project Scope
 This project was originally conceived to encompass a wide range of space mission operations, addressing various aspects of space weather and its impacts. However, due to the intricate and multifaceted nature of these operations, it became clear that a more targeted approach was needed.
 
 Focusing on Solar Wind
-The complexity and breadth of space mission operations pose significant challenges, from data collection and processing to modeling and real-time prediction. In order to maintain a manageable scope and ensure depth over breadth in the analysis, this project narrowed its focus to one of the most critical components of space weather: the solar wind.
+The complexity and extent of space mission operations pose significant challenges, from data collection and processing to modeling and real-time prediction. In order to maintain a manageable scope and ensure depth over breadth in the analysis, this project narrowed its focus to one of the most critical components of space weather: the solar wind.
 
 By concentrating on the solar wind, the project aims to deliver more accurate and robust predictions that are directly applicable to real-world needs. This focused approach allows for a deeper dive into the nuances of solar wind data, resulting in a model that is both practical and scientifically valuable.
 
