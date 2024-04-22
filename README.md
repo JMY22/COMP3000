@@ -52,6 +52,19 @@ python train.py
 To evaluate the model on the test set, run:
 python evaluate.py
 
+Latest Model Build
+The most recent build of the LSTM model used for solar wind forecasting can be found in the .keras directory of this repository. Here, you will find the serialized model structure and weights, which can be loaded using Keras/TensorFlow for immediate use or further development.
+
+How to Load the Model
+To load the latest model for evaluation or prediction, use the following code snippet in your Python environment:
+from tensorflow.keras.models import load_model
+
+# Replace 'path_to_model' with the actual path of the .keras file
+model_path = 'path_to_model/model_name.Keras'
+model = load_model(model_path)
+
+Please ensure that you have the necessary dependencies installed in your environment, including TensorFlow and any other libraries required by the model.
+
 Datasets
 The datasets included in this repository are sourced from Kaggle and NOAA. Ensure to adhere to their respective licenses and usage agreements.
 
